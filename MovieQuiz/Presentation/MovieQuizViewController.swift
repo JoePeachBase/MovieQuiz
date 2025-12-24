@@ -58,19 +58,18 @@ final class MovieQuizViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setFonts()
-        show(quiz: convert(model: questions[currentQuestionIndex]))
+        let quizModel = convert(model: questions[currentQuestionIndex])
+        show(quiz: quizModel)
     }
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {
         let currentQuestion = questions[currentQuestionIndex]
-        let givenAnswer = false
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        showAnswerResult(isCorrect: !currentQuestion.correctAnswer)
     }
     
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
         let currentQuestion = questions[currentQuestionIndex]
-        let givenAnswer = true
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        showAnswerResult(isCorrect: currentQuestion.correctAnswer)
     }
     
     // IB не видит шрифты, указал кодом
@@ -103,11 +102,16 @@ final class MovieQuizViewController: UIViewController {
         
         movieImageView.layer.masksToBounds = true
         movieImageView.layer.borderWidth = 8
-        movieImageView.layer.borderColor = isCorrect ? UIColor.green.cgColor : UIColor.red.cgColor
+        movieImageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+        noButton.isEnabled.toggle()
+        yesButton.isEnabled.toggle()
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self else { return }
             self.movieImageView.layer.borderWidth = 0
             self.showNextQuestionOrResults()
+            self.noButton.isEnabled.toggle()
+            self.yesButton.isEnabled.toggle()
         }
     }
     
@@ -135,7 +139,8 @@ final class MovieQuizViewController: UIViewController {
         
         let action = UIAlertAction(
             title: result.buttonText,
-            style: .default) { _ in
+            style: .default) { [weak self] _ in
+                guard let self else { return }
                 self.currentQuestionIndex = 0
                 self.correctAnswers = 0
                 

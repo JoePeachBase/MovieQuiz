@@ -9,11 +9,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet private weak var noButton: UIButton!
     @IBOutlet private weak var yesButton: UIButton!
     
+    private let questionsAmount = 10
+    private let statisticService: StatisticServiceProtocol = StatisticService()
     private var currentQuestionIndex = 0
     private var correctAnswers = 0
-    private let questionsAmount = 10
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
+    private var alertPresenter = AlertPresenter()
+    
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -29,7 +32,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else { return }
-        
         currentQuestion = question
         let viewModel = convert(model: question)
         
@@ -105,22 +107,25 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     private func show(quiz result: QuizResultsViewModel) {
-        let alert = UIAlertController(
-            title: result.title,
-            message: result.text,
-            preferredStyle: .alert
-        )
+        statisticService.store(correct: correctAnswers, total: questionsAmount)
         
-        let action = UIAlertAction(
-            title: result.buttonText,
-            style: .default) { [weak self] _ in
+        let bestGame = statisticService.bestGame
+        let message =   """
+                        Ваш результат: \(correctAnswers)/\(questionsAmount) 
+                        Количество сыгранных квизов: \(statisticService.gamesCount)
+                        Рекорд: \(bestGame.correct)/\(bestGame.total) (\(Date().dateTimeString))
+                        Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%
+                        """
+        
+        let alertModel = AlertModel(
+            title: result.title,
+            message: message,
+            buttonText: result.buttonText) { [weak self] in
                 guard let self else { return }
                 self.currentQuestionIndex = 0
                 self.correctAnswers = 0
-                
-                self.questionFactory?.requestNextQuestion()            }
-        
-        alert.addAction(action)
-        self.present(alert, animated: true, completion: nil)
+                self.questionFactory?.requestNextQuestion()
+            }
+        alertPresenter.show(in: self, model: alertModel)
     }
 }

@@ -31,12 +31,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - QuestionFactoryDelegate
     
     func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else { return }
+        guard let question else { return }
         currentQuestion = question
         let viewModel = convert(model: question)
         
-        DispatchQueue.main.async { [weak self] in
-            self?.show(quiz: viewModel)
+        DispatchQueue.main.async {
+            self.show(quiz: viewModel)
         }
     }
     
@@ -61,7 +61,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let quizStepViewModel = QuizStepViewModel(
-            image: UIImage(named: model.image) ?? UIImage(),
+            image: UIImage(named: model.imageName) ?? UIImage(),
             question: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
         return quizStepViewModel
@@ -84,8 +84,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         noButton.isEnabled.toggle()
         yesButton.isEnabled.toggle()
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             self.movieImageView.layer.borderWidth = 0
             self.showNextQuestionOrResults()
             self.noButton.isEnabled.toggle()

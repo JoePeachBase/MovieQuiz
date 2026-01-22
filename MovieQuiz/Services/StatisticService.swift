@@ -40,8 +40,7 @@ extension StatisticService: StatisticServiceProtocol {
     
     var totalAccuracy: Double {
         get {
-            guard totalQuestionsAsked > 0 else { return 0.0 }
-            return Double(totalCorrectAnswers) / Double(totalQuestionsAsked) * 100
+            totalQuestionsAsked > 0 ? Double(totalCorrectAnswers) / Double(totalQuestionsAsked) * 100 : 0
         }
     }
     

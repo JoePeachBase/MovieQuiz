@@ -11,7 +11,6 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
     
     private var presenter: MovieQuizPresenter!
-    private var statisticService: StatisticServiceProtocol = StatisticService()
     private var alertPresenter = AlertPresenter()
     
     
@@ -19,40 +18,31 @@ final class MovieQuizViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         presenter = MovieQuizPresenter(viewController: self)
-        statisticService = StatisticService()
         setFonts()
     }
     
-    func showAnswerResult(isCorrect: Bool) {
-        presenter.didAnswer(isCorrectAnswer: isCorrect)
-        
-        movieImageView.layer.masksToBounds = true
-        movieImageView.layer.borderWidth = 8
-        movieImageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-        noButton.isEnabled.toggle()
-        yesButton.isEnabled.toggle()
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self else { return }
-            self.noButton.isEnabled.toggle()
-            self.yesButton.isEnabled.toggle()
-            self.movieImageView.layer.borderWidth = 0
-            self.presenter.showNextQuestionOrResults()
-        }
-    }
-    
-    func show(quiz step: QuizStepViewModel) {
-        questionCounterLabel.text = step.questionNumber
-        movieImageView.image = UIImage(data: step.image) ?? UIImage()
-        questionTextLabel.text = step.question
-    }
-    
     @IBAction private func noButtonClicked(_ sender: UIButton) {
+        disableButtons()
         presenter.noButtonClicked()
     }
     
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
+        disableButtons()
         presenter.yesButtonClicked()
+    }
+    
+    func highlightImageBorder(isCorrectAnswer: Bool) {
+        movieImageView.layer.masksToBounds = true
+        movieImageView.layer.borderWidth = 8
+        movieImageView.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+    }
+    
+    func show(quiz step: QuizStepViewModel) {
+        clearImageBorder()
+        enableButtons()
+        questionCounterLabel.text = step.questionNumber
+        movieImageView.image = UIImage(data: step.image) ?? UIImage()
+        questionTextLabel.text = step.question
     }
     
     // IB не видит шрифты, указал кодом
@@ -65,16 +55,7 @@ final class MovieQuizViewController: UIViewController {
     }
     
     func show(quiz result: QuizResultsViewModel) {
-        statisticService.store(correct: presenter.correctAnswers, total: presenter.questionsAmount)
-        
-        let bestGame = statisticService.bestGame
-        let message =   """
-                        Ваш результат: \(presenter.correctAnswers)/\(presenter.questionsAmount) 
-                        Количество сыгранных квизов: \(statisticService.gamesCount)
-                        Рекорд: \(bestGame.correct)/\(bestGame.total) (\(Date().dateTimeString))
-                        Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%
-                        """
-        
+        let message = presenter.makeResultsMessage()
         let alertModel = AlertModel(
             title: result.title,
             message: message,
@@ -107,5 +88,19 @@ final class MovieQuizViewController: UIViewController {
     func showLoadingIndicator() {
         activityIndicator.isHidden = false
         activityIndicator.startAnimating()
+    }
+    
+    private func clearImageBorder() {
+        movieImageView.layer.borderWidth = 0
+    }
+    
+    private func enableButtons() {
+        noButton.isEnabled = true
+        yesButton.isEnabled = true
+    }
+    
+    private func disableButtons() {
+        noButton.isEnabled = false
+        yesButton.isEnabled = false
     }
 }

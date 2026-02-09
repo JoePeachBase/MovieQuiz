@@ -27,6 +27,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         statisticService = StatisticService()
         showLoadingIndicator()
         questionFactory.loadData()
+        presenter.viewController = self
     }
     
     // MARK: - QuestionFactoryDelegate
@@ -50,40 +51,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         showNetworkError(message: error.localizedDescription)
     }
     
-    @IBAction private func noButtonClicked(_ sender: UIButton) {
-        guard let currentQuestion else { return }
-        showAnswerResult(isCorrect: !currentQuestion.correctAnswer)
-    }
-    
-    @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        guard let currentQuestion else { return }
-        showAnswerResult(isCorrect: currentQuestion.correctAnswer)
-    }
-    
-    // IB не видит шрифты, указал кодом
-    private func setFonts() {
-        questionLabel.font = UIFont(name: "YSDisplay-Medium", size: 20)
-        questionCounterLabel.font = UIFont(name: "YSDisplay-Medium", size: 20)
-        questionTextLabel.font = UIFont(name: "YSDisplay-Bold", size: 23)
-        noButton.titleLabel?.font = UIFont(name: "YSDisplay-Medium", size: 20)
-        yesButton.titleLabel?.font = UIFont(name: "YSDisplay-Medium", size: 20)
-    }
-    
-//    private func convert(model: QuizQuestion) -> QuizStepViewModel {
-//        let quizStepViewModel = QuizStepViewModel(
-//            image: UIImage(data: model.image) ?? UIImage(),
-//            question: model.text,
-//            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-//        return quizStepViewModel
-//    }
-    
-    private func show(quiz step: QuizStepViewModel) {
-        questionCounterLabel.text = step.questionNumber
-        movieImageView.image = UIImage(data: step.image) ?? UIImage()
-        questionTextLabel.text = step.question
-    }
-    
-    private func showAnswerResult(isCorrect: Bool) {
+    func showAnswerResult(isCorrect: Bool) {
         if isCorrect {
             correctAnswers += 1
         }
@@ -100,6 +68,31 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             self.noButton.isEnabled.toggle()
             self.yesButton.isEnabled.toggle()
         }
+    }
+    
+    @IBAction private func noButtonClicked(_ sender: UIButton) {
+        presenter.currentQuestion = currentQuestion
+        presenter.noButtonClicked()
+    }
+    
+    @IBAction private func yesButtonClicked(_ sender: UIButton) {
+        presenter.currentQuestion = currentQuestion
+        presenter.yesButtonClicked()
+    }
+    
+    // IB не видит шрифты, указал кодом
+    private func setFonts() {
+        questionLabel.font = UIFont(name: "YSDisplay-Medium", size: 20)
+        questionCounterLabel.font = UIFont(name: "YSDisplay-Medium", size: 20)
+        questionTextLabel.font = UIFont(name: "YSDisplay-Bold", size: 23)
+        noButton.titleLabel?.font = UIFont(name: "YSDisplay-Medium", size: 20)
+        yesButton.titleLabel?.font = UIFont(name: "YSDisplay-Medium", size: 20)
+    }
+    
+    private func show(quiz step: QuizStepViewModel) {
+        questionCounterLabel.text = step.questionNumber
+        movieImageView.image = UIImage(data: step.image) ?? UIImage()
+        questionTextLabel.text = step.question
     }
     
     private func showNextQuestionOrResults() {

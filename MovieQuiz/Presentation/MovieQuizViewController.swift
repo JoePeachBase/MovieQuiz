@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController {
+final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
     
     @IBOutlet private weak var questionLabel: UILabel!
     @IBOutlet private weak var questionCounterLabel: UILabel!
@@ -43,15 +43,6 @@ final class MovieQuizViewController: UIViewController {
         questionCounterLabel.text = step.questionNumber
         movieImageView.image = UIImage(data: step.image) ?? UIImage()
         questionTextLabel.text = step.question
-    }
-    
-    // IB не видит шрифты, указал кодом
-    private func setFonts() {
-        questionLabel.font = UIFont(name: "YSDisplay-Medium", size: 20)
-        questionCounterLabel.font = UIFont(name: "YSDisplay-Medium", size: 20)
-        questionTextLabel.font = UIFont(name: "YSDisplay-Bold", size: 23)
-        noButton.titleLabel?.font = UIFont(name: "YSDisplay-Medium", size: 20)
-        yesButton.titleLabel?.font = UIFont(name: "YSDisplay-Medium", size: 20)
     }
     
     func show(quiz result: QuizResultsViewModel) {
@@ -102,5 +93,14 @@ final class MovieQuizViewController: UIViewController {
     private func disableButtons() {
         noButton.isEnabled = false
         yesButton.isEnabled = false
+    }
+    
+    // IB не видит шрифты, указал кодом
+    private func setFonts() {
+        questionLabel.font = UIFont(name: "YSDisplay-Medium", size: 20)
+        questionCounterLabel.font = UIFont(name: "YSDisplay-Medium", size: 20)
+        questionTextLabel.font = UIFont(name: "YSDisplay-Bold", size: 23)
+        noButton.titleLabel?.font = UIFont(name: "YSDisplay-Medium", size: 20)
+        yesButton.titleLabel?.font = UIFont(name: "YSDisplay-Medium", size: 20)
     }
 }
